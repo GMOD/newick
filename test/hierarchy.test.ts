@@ -67,10 +67,11 @@ describe('traversals', () => {
     ])
   })
 
-  test('eachAfter is post-order', () => {
+  test('eachAfter is post-order, siblings left to right', () => {
+    // not descendants().reverse(), which would give b, a2, a1, a, root
     const seen: string[] = []
     eachAfter(hierarchy(tree(), kids), n => seen.push(n.data.name))
-    expect(seen).toEqual(['b', 'a2', 'a1', 'a', 'root'])
+    expect(seen).toEqual(['a1', 'a2', 'a', 'b', 'root'])
   })
 
   test('leaves is left to right', () => {

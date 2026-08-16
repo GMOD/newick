@@ -111,11 +111,27 @@ export function forEachDescendant<N extends TreeLike<N>>(
   }
 }
 
-/** Post-order: children before parents. */
+/**
+ * Post-order: a node's children, left to right, then the node.
+ *
+ * Not `descendants().reverse()`, which also puts children before parents but
+ * walks siblings right to left. Reversing a pre-order that pushes children
+ * left-to-right (so the rightmost pops first) gives the real thing.
+ */
 export function eachAfter<N extends TreeLike<N>>(node: N, cb: (n: N) => void) {
-  const nodes = descendants(node)
-  for (let i = nodes.length - 1; i >= 0; i--) {
-    cb(nodes[i]!)
+  const order: N[] = []
+  const stack = [node]
+  while (stack.length > 0) {
+    const n = stack.pop()!
+    order.push(n)
+    if (n.children) {
+      for (const child of n.children) {
+        stack.push(child)
+      }
+    }
+  }
+  for (let i = order.length - 1; i >= 0; i--) {
+    cb(order[i]!)
   }
 }
 
