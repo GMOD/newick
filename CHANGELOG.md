@@ -1,3 +1,15 @@
+## [1.0.1](https://github.com/GMOD/newick/compare/v1.0.0...v1.0.1) (2026-08-16)
+
+### Bug Fixes
+
+- EachAfter visits siblings left to right ([1cd5e18](https://github.com/GMOD/newick/commit/1cd5e185c7cf7cc22c04d34d7ee92198b67212c6))
+
+### Documentation
+
+- Drop the extraction backstory from the readme ([b3b097d](https://github.com/GMOD/newick/commit/b3b097d4d917608945f16cc4629b61c52975634c))
+- Tone down the readme ([36f7431](https://github.com/GMOD/newick/commit/36f74313058978a230bee3a6352a16acb3448d1e))
+- Say how this lines up with d3-hierarchy ([e06cc91](https://github.com/GMOD/newick/commit/e06cc91d5690fd89b8729c4498a984deda411f1e))
+
 ## [1.0.0](https://github.com/GMOD/newick/compare/...v1.0.0) (2026-08-16)
 
 ### Chores

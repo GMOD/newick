@@ -1,6 +1,6 @@
 {
   "name": "@gmod/newick",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "packageManager": "pnpm@11.15.1",
   "description": "Newick parsing and stack-safe tree traversals, with no dependencies",
   "license": "MIT",
