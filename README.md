@@ -47,16 +47,21 @@ eachAfter(root, n => {
 })
 
 // one elbow per branch: down the parent's column, then across to the child
-const d = links(root)
-  .map(
-    ({ source, target }) => `M${source.x},${source.y}V${target.y}H${target.x}`,
-  )
-  .join('')
+ctx.beginPath()
+for (const { source, target } of links(root)) {
+  ctx.moveTo(source.x, source.y)
+  ctx.lineTo(source.x, target.y)
+  ctx.lineTo(target.x, target.y)
+}
+ctx.stroke()
+
+for (const leaf of rows) {
+  ctx.fillText(leaf.data.name, leaf.x + 4, leaf.y + 4)
+}
 ```
 
 Swap `n.depth * 40` for a cumulative branch-length sum to get a phylogram
-instead of a cladogram, and emit `moveTo`/`lineTo` instead of a path string to
-draw it on a canvas.
+instead of a cladogram.
 
 ## Newick
 
