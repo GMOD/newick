@@ -2,10 +2,8 @@
 
 Newick parsing and stack-safe tree traversals. No dependencies.
 
-Extracted from the two implementations that had drifted apart in
-[react-msaview](https://github.com/GMOD/JBrowseMSA) and
-[jbrowse-components](https://github.com/GMOD/jbrowse-components) — each had
-fixed a bug the other still has.
+Used by [react-msaview](https://github.com/GMOD/JBrowseMSA) and
+[jbrowse-components](https://github.com/GMOD/jbrowse-components).
 
 ```sh
 npm install @gmod/newick
