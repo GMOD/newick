@@ -41,6 +41,9 @@
     "postversion": "git push --follow-tags",
     "build": "pnpm build:esm && pnpm build:es5"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [
     "newick",
     "phylogenetics",
