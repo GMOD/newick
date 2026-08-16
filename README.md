@@ -25,6 +25,39 @@ traversals are iterative, so a deep tree does not overflow the stack (a
 dendrogram can be nearly as deep as it has leaves), and the parser reads
 single-quoted labels, so a name containing a `,` or a `:` stays one label.
 
+## Drawing one
+
+There is no layout function here, because a layout is a dozen lines once you
+have the traversals. Leaves get evenly spaced rows and an internal node sits at
+the mean of its children, which is what `eachAfter` is for — a parent has to be
+placed after the children it averages:
+
+```js
+const root = hierarchy(parseNewick(text), d => d.children)
+
+const rows = leaves(root)
+rows.forEach((leaf, i) => {
+  leaf.y = (i + 0.5) * (height / rows.length)
+})
+eachAfter(root, n => {
+  if (n.children) {
+    n.y = n.children.reduce((total, c) => total + c.y, 0) / n.children.length
+  }
+  n.x = n.depth * 40
+})
+
+// one elbow per branch: down the parent's column, then across to the child
+const d = links(root)
+  .map(
+    ({ source, target }) => `M${source.x},${source.y}V${target.y}H${target.x}`,
+  )
+  .join('')
+```
+
+Swap `n.depth * 40` for a cumulative branch-length sum to get a phylogram
+instead of a cladogram, and emit `moveTo`/`lineTo` instead of a path string to
+draw it on a canvas.
+
 ## Newick
 
 ```js
