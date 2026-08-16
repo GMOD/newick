@@ -58,6 +58,11 @@ only way to name a node something that looks like a number.
 `hierarchy(data, childrenAccessor)` wraps plain data in nodes carrying `data`,
 `children`, `parent`, `depth` and `height`.
 
+These are the same operations `d3-hierarchy` offers, as free functions rather
+than methods on the node — `leaves(root)` instead of `root.leaves()`. What is
+not here: the layout algorithms (`cluster`, `tree`, `treemap`, `pack`,
+`partition`) and `stratify`. If you want those, use `d3-hierarchy`.
+
 | function                            | order                                  |
 | ----------------------------------- | -------------------------------------- |
 | `descendants` / `forEachDescendant` | pre-order (parents first)              |
