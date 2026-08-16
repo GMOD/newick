@@ -10,7 +10,7 @@ import {
   links,
   sort,
   sum,
-} from './hierarchy.ts'
+} from '../src/hierarchy.ts'
 
 interface Datum {
   name: string
@@ -52,7 +52,7 @@ describe('hierarchy', () => {
   })
 
   test('leaves a childless node with null children', () => {
-    expect(hierarchy({ name: 'solo' } as Datum, kids).children).toBeNull()
+    expect(hierarchy<Datum>({ name: 'solo' }, kids).children).toBeNull()
   })
 })
 

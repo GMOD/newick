@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import parseNewick from './newick.ts'
+import parseNewick from '../src/newick.ts'
 
 describe('standard phylo newick', () => {
   test('parses names and branch lengths', () => {

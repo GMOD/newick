@@ -7,6 +7,10 @@ Extracted from the two implementations that had drifted apart in
 [jbrowse-components](https://github.com/GMOD/jbrowse-components) — each had
 fixed a bug the other still has.
 
+```sh
+npm install @gmod/newick
+```
+
 ```js
 import { hierarchy, leaves, links, parseNewick } from '@gmod/newick'
 

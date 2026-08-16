@@ -1,22 +1,23 @@
 {
+  "include": ["src"],
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "lib": ["esnext"],
-    "sourceMap": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "noUncheckedIndexedAccess": true,
-    "strict": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "isolatedModules": true,
+    "types": ["node"],
+    "rootDir": "src",
+    "outDir": "dist",
     "declaration": true,
+    "sourceMap": true,
+    "strict": true,
     "allowImportingTsExtensions": true,
     "rewriteRelativeImportExtensions": true,
-    "outDir": "dist/",
-    "rootDir": "src"
-  },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+    "erasableSyntaxOnly": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  }
 }

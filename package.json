@@ -1,55 +1,64 @@
 {
   "name": "@gmod/newick",
   "version": "0.1.0",
+  "packageManager": "pnpm@11.15.1",
   "description": "Newick parsing and stack-safe tree traversals, with no dependencies",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GMOD/newick.git"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "exports": {
+    "import": "./esm/index.js",
+    "require": "./dist/index.js"
+  },
+  "author": {
+    "name": "Colin Diesh",
+    "email": "colin.diesh@gmail.com",
+    "url": "https://github.com/cmdcolin"
+  },
+  "files": [
+    "dist",
+    "esm",
+    "src"
+  ],
+  "scripts": {
+    "test": "vitest",
+    "clean": "rimraf dist esm",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint --report-unused-disable-directives --max-warnings 0",
+    "typecheck": "tsc --noEmit -p tsconfig.lint.json",
+    "prebuild": "pnpm clean",
+    "build:esm": "tsc --outDir esm",
+    "build:es5": "tsc --module commonjs --moduleResolution bundler --outDir dist",
+    "postbuild:es5": "echo '{\"type\": \"commonjs\"}' > dist/package.json",
+    "preversion": "pnpm lint && pnpm format:check && pnpm typecheck && pnpm test --run && pnpm build",
+    "version": "git-cliff --tag v$npm_package_version --unreleased --prepend CHANGELOG.md && git add CHANGELOG.md",
+    "postversion": "git push --follow-tags",
+    "build": "pnpm build:esm && pnpm build:es5"
+  },
   "keywords": [
     "newick",
     "phylogenetics",
     "tree",
     "hierarchy",
-    "dendrogram"
+    "dendrogram",
+    "bioinformatics"
   ],
-  "license": "MIT",
-  "type": "module",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/GMOD/newick.git"
-  },
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "types": "src/index.ts",
-  "files": [
-    "dist",
-    "src"
-  ],
-  "engines": {
-    "node": ">=20"
-  },
-  "scripts": {
-    "clean": "node --eval \"fs.rmSync('dist',{recursive:true,force:true})\" --input-type=module",
-    "build": "pnpm clean && tsc",
-    "watch": "tsc --watch",
-    "test": "vitest run",
-    "typecheck": "tsc --noEmit",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
-  },
-  "publishConfig": {
-    "access": "public",
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    },
-    "types": "dist/index.d.ts",
-    "main": "dist/index.js"
-  },
-  "sideEffects": false,
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.9.5",
+    "eslint": "^10.8.0",
+    "eslint-plugin-import-x": "^4.17.1",
+    "git-cliff": "^2.13.1",
     "prettier": "^3.9.6",
-    "typescript": "^7.0.2",
+    "rimraf": "^6.1.3",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.65.0",
     "vitest": "^4.1.10"
   }
 }

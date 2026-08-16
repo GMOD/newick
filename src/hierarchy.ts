@@ -15,6 +15,8 @@ export interface HierarchyNode<T> {
   parent: HierarchyNode<T> | null
   depth: number
   height: number
+  /** set by `sum`, and otherwise absent */
+  value?: number
 }
 
 export interface HierarchyLink<N> {
@@ -25,7 +27,9 @@ export interface HierarchyLink<N> {
 // The traversals are generic over the *node* type, not over its data, so a
 // caller that extends HierarchyNode with its own layout fields gets its own type
 // back instead of the base one.
-type TreeLike<N> = { children: N[] | null }
+interface TreeLike<N> {
+  children: N[] | null
+}
 
 /**
  * Pre-order: every parent precedes all of its descendants. Iterating the result
@@ -162,10 +166,16 @@ export function hierarchy<T>(
   return root
 }
 
-/** Accumulate a value up the tree, each node summing its children's. */
-export function sum<N extends TreeLike<N> & { data: T; value?: number }, T>(
+/**
+ * Accumulate a value up the tree, each node summing its children's.
+ *
+ * One type parameter, with the datum reached through `N['data']`: a second one
+ * for the datum cannot be inferred from the arguments, so callers would have to
+ * write both out or get `unknown` in the callback.
+ */
+export function sum<N extends TreeLike<N> & { data: unknown; value?: number }>(
   node: N,
-  valueFn: (d: T) => number,
+  valueFn: (d: N['data']) => number,
 ): N {
   eachAfter(node, n => {
     let s = valueFn(n.data)
