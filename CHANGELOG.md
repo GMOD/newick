@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/GMOD/newick/compare/v1.0.1...v1.0.2) (2026-08-16)
+
+### Documentation
+
+- Show how to draw a tree with the traversals ([84b9e87](https://github.com/GMOD/newick/commit/84b9e87d9f50e1a13b376b50166e4dafdf1a54be))
+- Draw the example on a canvas instead of an svg path ([0d54f23](https://github.com/GMOD/newick/commit/0d54f235482651442a039e653699af03e6f0e425))
+
 ## [1.0.1](https://github.com/GMOD/newick/compare/v1.0.0...v1.0.1) (2026-08-16)
 
 ### Bug Fixes
