@@ -1,0 +1,55 @@
+{
+  "name": "@gmod/newick",
+  "version": "0.1.0",
+  "description": "Newick parsing and stack-safe tree traversals, with no dependencies",
+  "keywords": [
+    "newick",
+    "phylogenetics",
+    "tree",
+    "hierarchy",
+    "dendrogram"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GMOD/newick.git"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "types": "src/index.ts",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "clean": "node --eval \"fs.rmSync('dist',{recursive:true,force:true})\" --input-type=module",
+    "build": "pnpm clean && tsc",
+    "watch": "tsc --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "types": "dist/index.d.ts",
+    "main": "dist/index.js"
+  },
+  "sideEffects": false,
+  "devDependencies": {
+    "prettier": "^3.9.6",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.10"
+  }
+}
