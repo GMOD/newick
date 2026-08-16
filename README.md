@@ -1,9 +1,10 @@
 # @gmod/newick
 
-Newick parsing and stack-safe tree traversals. No dependencies.
+Newick parsing and small tree utilities. No dependencies.
 
 Used by [react-msaview](https://github.com/GMOD/JBrowseMSA) and
-[jbrowse-components](https://github.com/GMOD/jbrowse-components).
+[jbrowse-components](https://github.com/GMOD/jbrowse-components), which wanted
+the parts of `d3-hierarchy` they used without taking the dependency.
 
 ```sh
 npm install @gmod/newick
@@ -19,19 +20,10 @@ const root = hierarchy(
 leaves(root).map(n => n.data.name) // ['A', 'B', 'C', 'D']
 ```
 
-## Why this exists
-
-**Quoted labels are grammar, not decoration.** A leaf name is an arbitrary
-string out of somebody's data file. Split the input on the grammar characters
-with a regex and a label holding a `,` becomes two leaves — the tree comes back
-the wrong _shape_, and every row below the split is labelled with its
-neighbour's name. `parseNewick` scans rather than splits, so `'has, a comma'`
-and `'chr1:100-200'` survive.
-
-**Trees get deep.** A single-linkage dendrogram or a ladderised phylogeny is a
-caterpillar: its depth equals its leaf count. Recursive traversals throw
-`RangeError: Maximum call stack size exceeded` somewhere around 5000 tips. Every
-traversal here is iterative, and the tests run against a 50,000-tip caterpillar.
+Two things worth knowing, since both differ from the obvious implementation: the
+traversals are iterative, so a deep tree does not overflow the stack (a
+dendrogram can be nearly as deep as it has leaves), and the parser reads
+single-quoted labels, so a name containing a `,` or a `:` stays one label.
 
 ## Newick
 
@@ -47,11 +39,10 @@ whole tree that is one bare node (`A;`).
 
 ### `postParenNumeric`
 
-A bare number after a `)` is ambiguous, and nothing in the string resolves it.
-The Newick grammar puts the internal node's _label_ there, so `95` in
-`((A,B)95,(C,D)80);` is a bootstrap support value. `@gmod/hclust` reuses the
-same slot for a cluster's absolute merge height and never emits a `:`, so for
-that dialect it is a length.
+A bare number after a `)` is ambiguous. Newick puts the internal node's _label_
+there, so `95` in `((A,B)95,(C,D)80);` is a bootstrap value, but `@gmod/hclust`
+reuses the slot for a cluster's merge height. Nothing in the string tells them
+apart, hence the option.
 
 | value      | behaviour                                                        |
 | ---------- | ---------------------------------------------------------------- |
@@ -59,9 +50,8 @@ that dialect it is a length.
 | `'name'`   | always a name — plain Newick                                     |
 | `'length'` | always a length — `@gmod/hclust` output                          |
 
-A _quoted_ post-paren numeric is always a name, under every setting: quoting is
-the writer saying "this is a label", and it is the only way to name a node
-something that looks like a number.
+A quoted post-paren numeric is always a name, under every setting — it is the
+only way to name a node something that looks like a number.
 
 ## Hierarchy
 
