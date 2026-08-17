@@ -126,9 +126,8 @@ dendrogram layout is a dozen lines against these traversals, which
 
 ## Docs
 
-- [docs/hierarchy.md](docs/hierarchy.md) — `hierarchy`, every traversal and the
-  order it visits in, and the types that keep a caller's own node type through a
-  walk
+- [docs/hierarchy.md](docs/hierarchy.md) — `hierarchy` and traversal helper
+  functions
 - [docs/drawing.md](docs/drawing.md) — laying out and drawing a dendrogram or
   phylogram on a canvas
 - [docs/dialects.md](docs/dialects.md) — the bare-number-after-`)` ambiguity and

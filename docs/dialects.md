@@ -4,10 +4,12 @@ One token in Newick has two readings, and nothing local to the string tells them
 apart. The grammar puts the internal node's _label_ after a `)`, so `95` in
 `((A,B)95,(C,D)80);` is a bootstrap support value — a name.
 
-A dendrogram has no branch lengths to record. What defines one of its clusters
-is the height at which the cluster merged, a number that belongs to the node
-rather than to the edge above it, and writers put that in the same post-paren
-slot: `@gmod/hclust` emits `(A,B)1.5`, so there `1.5` is a length.
+What defines a dendrogram's cluster is the height it merged at, a number that
+belongs to the node rather than to the edge above it, and writers have put that
+in the same post-paren slot — so in `(A,B)1.5;` from such a writer, `1.5` is a
+length. `@gmod/hclust` wrote that form through v4, and switched to `:` branch
+lengths in v5 precisely because a numeric internal label reads as a bootstrap
+value everywhere else; strings written by the older versions are still around.
 `parseNewick`'s `postParenNumeric` option exists for the two forms, and its
 default resolves them correctly, so you should not normally need to set it.
 
@@ -19,14 +21,14 @@ parseNewick(text, { postParenNumeric: 'name' })
 | ---------- | ------------------- | -------------------------------------------- |
 | `'auto'`   | either, see below   | you don't know which dialect _(default)_     |
 | `'name'`   | `{ name: '1.5' }`   | plain Newick, and the numbers are bootstraps |
-| `'length'` | `{ length: 1.5 }`   | `@gmod/hclust` output                        |
+| `'length'` | `{ length: 1.5 }`   | dendrogram output, e.g. `@gmod/hclust` v4    |
 
 ## What `'auto'` decides on
 
 A number after a `)` is a length only when the tree contains no `:` branch
-length _anywhere_ — the shape hclust writes, and one a real phylogeny
-essentially never has. Any `:` in the string and every post-paren number is a
-name:
+length _anywhere_ — the shape a height-in-the-label writer produces, and one a
+real phylogeny essentially never has. Any `:` in the string and every post-paren
+number is a name:
 
 ```js
 parseNewick('(A,B)1.5;')
