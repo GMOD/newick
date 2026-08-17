@@ -10,11 +10,11 @@ than it sounds: a phylogeny or a single-linkage dendrogram can be a caterpillar,
 as deep as it has leaves, and the recursive form throws
 `RangeError: Maximum call stack size exceeded` at around 5000 tips.
 
-## `hierarchy`
-
 `hierarchy(data, childrenAccessor)` wraps plain nested data in nodes that know
-where they sit in the tree. The accessor pulls the child array off your data, so
-`d => d.items` works as well as `d => d.children`.
+where they sit. The accessor pulls the child array off your data, so
+`d => d.items` works as well as `d => d.children`. Every example below runs
+against this tree, whose `depth` counts edges down from the root and whose
+`height` counts edges down to the deepest leaf beneath a node:
 
 ```js
 import { hierarchy, parseNewick } from '@gmod/newick'
@@ -24,20 +24,26 @@ const root = hierarchy(
   d => d.children,
 )
 
-root.data.name // 'F' — the original object, untouched
-root.parent // null at the root
-root.depth // 0 — edges down from the root
-root.height // 2 — edges down to the deepest leaf
+// F        depth 0, height 2
+// ├─ A     depth 1, height 0
+// ├─ B     depth 1, height 0
+// └─ E     depth 1, height 1
+//    ├─ C  depth 2, height 0
+//    └─ D  depth 2, height 0
 
 const e = root.children[2]
+root.data.name // 'F' — the original parsed object, untouched
+root.parent // null
 e.data.name // 'E'
 e.depth // 1
 e.height // 1
 e.parent === root // true
-e.children[0].children // null at a leaf, not []
+e.children[0].data.name // 'C'
+e.children[0].depth // 2
+e.children[0].children // null — a leaf, not an empty array
 ```
 
-## The traversals
+## Traversals
 
 Each one takes a node as its first argument and walks the subtree under it, so
 passing a non-root node traverses only that branch.
@@ -54,12 +60,12 @@ passing a non-root node traverses only that branch.
 | `sum(node, valueFn)`          | `node`, with `.value` set on every node to `valueFn(n.data)` plus its children's | post-order                                            |
 | `sort(node, compareFn)`       | `node`, with every level's children sorted in place                              | —                                                     |
 
-Against the same `root` as above:
+Against the `root` and `e` above:
 
 ```js
 descendants(root).map(n => n.data.name) // ['F', 'A', 'B', 'E', 'C', 'D']
 leaves(root).map(n => n.data.name) // ['A', 'B', 'C', 'D']
-leaves(root.children[2]).map(n => n.data.name) // ['C', 'D']
+leaves(e).map(n => n.data.name) // ['C', 'D']
 
 links(root).map(l => `${l.source.data.name}->${l.target.data.name}`)
 // ['F->A', 'F->B', 'F->E', 'E->C', 'E->D']
@@ -71,21 +77,16 @@ const names = []
 eachAfter(root, n => names.push(n.data.name))
 names // ['A', 'B', 'C', 'D', 'E', 'F']
 
-sum(root, d => (d.children ? 0 : 1)).value // 4 — leaves under the root
-root.children[2].value // 2 — and under E
-
-sort(root, (a, b) => b.data.name.localeCompare(a.data.name))
-root.children.map(n => n.data.name) // ['E', 'B', 'A']
+sum(root, d => (d.children ? 0 : 1)).value // 4 — leaves under F
+e.value // 2 — and under E
 ```
 
-`forEachDescendant` and `forEachLink` are the same walks without the
+`forEachDescendant` and `forEachLink` are the same two walks without the
 intermediate array, for a render loop that would throw it away:
 
 ```js
 forEachLink(root, (source, target) => drawBranch(source, target))
 ```
-
-## Picking one
 
 Which traversal you want usually follows from the direction the information
 flows. Reading a parent's value down into its children — an inherited x
@@ -96,7 +97,22 @@ children must already be done.
 
 `eachAfter` is not `descendants().reverse()`. Both put children before parents,
 but the reversal walks siblings right to left, which shows up the moment a
-callback depends on sibling order.
+callback depends on sibling order:
+
+```js
+descendants(root)
+  .reverse()
+  .map(n => n.data.name) // ['D', 'C', 'E', 'B', 'A', 'F'] — D before C
+```
+
+`sort` is the one call that mutates the tree, reordering every node's children
+in place and returning the node you gave it:
+
+```js
+sort(root, (a, b) => b.data.name.localeCompare(a.data.name))
+root.children.map(n => n.data.name) // ['E', 'B', 'A']
+leaves(root).map(n => n.data.name) // ['D', 'C', 'B', 'A'] — E's children flip too
+```
 
 ## Types
 

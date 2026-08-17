@@ -31,11 +31,9 @@ leaves(root).map(n => n.data.name) // ['A', 'B', 'C', 'D']
 parts of `d3-hierarchy` they needed, without the pure ESM requirement and with
 [somewhat simpler types](docs/hierarchy.md#types).
 
-## Parsing
-
-`parseNewick` produces plain nested objects, and every field is optional. A node
-is `{ name?: string, length?: number, children?: NewickNode[] }`, so a node with
-no `children` is a leaf and a tree can be one bare node:
+Every field `parseNewick` produces is optional — a node is
+`{ name?: string, length?: number, children?: NewickNode[] }` — so a node with
+no `children` is a leaf, and a whole tree can be one bare node:
 
 ```js
 parseNewick('A;') // { name: 'A' }
@@ -62,39 +60,51 @@ parseNewick("('A,x','B (y)','it''s')Root;")
 
 A bare number after a `)` is the one genuinely ambiguous token — a bootstrap
 value in plain Newick, a merge height in `@gmod/hclust` output. The default
-reads both correctly:
+reads both correctly, and [docs/dialects.md](docs/dialects.md) covers how it
+decides and the `postParenNumeric` option that pins it:
 
 ```js
 parseNewick('((A:1,B:1)95,(C:1,D:1)80);') // 95 and 80 are names
-parseNewick('(A,B)1.5;') // { length: 1.5, children: [...] }
+parseNewick('(A,B)1.5;') // { length: 1.5, children: [{ name: 'A' }, { name: 'B' }] }
 ```
 
-See [docs/dialects.md](docs/dialects.md) for how it decides, and for the
-`postParenNumeric` option that pins the reading.
-
-## Walking the tree
-
 `hierarchy` wraps nested data — any nested data, not just Newick — in nodes that
-know where they sit:
+know where they sit. `depth` counts edges down from the root and `height` counts
+edges down to the deepest leaf beneath the node, both filled in for every node
+up front:
 
 ```js
-const root = hierarchy(tree, d => d.children)
+const root = hierarchy(
+  parseNewick('(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;'),
+  d => d.children,
+)
 
-root.depth // 0, and 1 for its children
-root.height // 2 — edges down to the deepest leaf
-root.children[2].data.name // 'E'
-root.children[2].parent === root // true
-root.children[2].children[0].children // null at a leaf
+// F        depth 0, height 2
+// ├─ A     depth 1, height 0
+// ├─ B     depth 1, height 0
+// └─ E     depth 1, height 1
+//    ├─ C  depth 2, height 0
+//    └─ D  depth 2, height 0
+
+const e = root.children[2]
+e.data.name // 'E'
+e.depth // 1
+e.height // 1
+e.parent === root // true
+e.children[0].data.name // 'C'
+e.children[0].depth // 2
+e.children[0].children // null — a leaf, not an empty array
 ```
 
 The traversals are free functions taking a node first, so each walks the subtree
-under whatever you hand it:
+under whatever you hand it — against that same tree:
 
 ```js
 import { descendants, find, leaves, links, sum } from '@gmod/newick'
 
 descendants(root).map(n => n.data.name) // ['F', 'A', 'B', 'E', 'C', 'D']
-leaves(root.children[2]).length // 2 — only under E
+leaves(root).map(n => n.data.name) // ['A', 'B', 'C', 'D']
+leaves(e).map(n => n.data.name) // ['C', 'D'] — only under E
 links(root).length // 5 — { source, target } per branch
 find(root, n => n.data.name === 'C').data.length // 0.3
 sum(root, d => (d.children ? 0 : 1)).value // 4 — leaves under the root

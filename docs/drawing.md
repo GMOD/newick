@@ -35,15 +35,28 @@ for (const leaf of rows) {
 }
 ```
 
-For `'(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;'` in a 200px-tall canvas, that puts the
-four leaves at `y = 25, 75, 125, 175`, `E` at their children's mean `150`, and
-the root at `(25 + 75 + 150) / 3`:
+Run that over `'(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;'` in a 200px-tall canvas and
+the four leaves land on evenly spaced rows, `E` on the mean of `C` and `D`, and
+the root on the mean of `A`, `B` and `E`:
 
 ```js
+// x = depth * 40      y
+//
+// F                   83.33  ← (25 + 75 + 150) / 3
+// ├─ A     x 40        25
+// ├─ B     x 40        75
+// └─ E     x 40       150    ← (125 + 175) / 2
+//    ├─ C  x 80       125
+//    └─ D  x 80       175
+
 leaves(root).map(n => [n.x, n.y]) // [[40, 25], [40, 75], [80, 125], [80, 175]]
-root.children[2].y // 150 — E
-root.y // 83.33… — F
+root.children[2].y // 150
+root.y // 83.33333333333333
 ```
+
+Note `F` sits at `83.33` rather than halfway down the canvas: an internal node
+averages its immediate children, not its leaves, so a lopsided tree pulls its
+ancestors toward the side carrying more branches.
 
 Two variations worth knowing. Swapping `n.depth * 40` for a cumulative
 branch-length sum turns the cladogram into a phylogram, where a branch's drawn
