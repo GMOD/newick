@@ -7,7 +7,8 @@ Newick parsing and small tree utilities. No dependencies.
 
 Used by [react-msaview](https://github.com/GMOD/JBrowseMSA) and
 [jbrowse-components](https://github.com/GMOD/jbrowse-components), which wanted
-the parts of `d3-hierarchy` they used without taking the dependency.
+the parts of `d3-hierarchy` they used without the pure ESM requirement, and
+somewhat simpler typescript types.
 
 ```sh
 npm install @gmod/newick
