@@ -58,15 +58,19 @@ parseNewick("('A,x','B (y)','it''s')Root;")
 // ] }
 ```
 
-A bare number after a `)` is the one genuinely ambiguous token — a bootstrap
-value in plain Newick, a merge height in `@gmod/hclust` output. The default
-reads both correctly, and [docs/dialects.md](docs/dialects.md) covers how it
-decides and the `postParenNumeric` option that pins it:
+A bare number after a `)` sits in the grammar's label slot, so in a phylogeny it
+is a bootstrap support value. A tree carrying no `:` branch length _anywhere_ is
+not a phylogeny, though — it is a dendrogram, where that number is the height
+the cluster merged at — and `parseNewick` reads the two accordingly:
 
 ```js
 parseNewick('((A:1,B:1)95,(C:1,D:1)80);') // 95 and 80 are names
 parseNewick('(A,B)1.5;') // { length: 1.5, children: [{ name: 'A' }, { name: 'B' }] }
 ```
+
+[docs/dialects.md](docs/dialects.md) covers which writers produce which form,
+and the `postParenNumeric` option that pins the reading rather than inferring
+it.
 
 `hierarchy` wraps nested data — any nested data, not just Newick — in nodes that
 know where they sit. `depth` counts edges down from the root and `height` counts

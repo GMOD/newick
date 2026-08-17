@@ -1,12 +1,15 @@
 # The bare number after a `)`
 
-One token in Newick has two readings, and nothing in the string tells them
+One token in Newick has two readings, and nothing local to the string tells them
 apart. The grammar puts the internal node's _label_ after a `)`, so `95` in
-`((A,B)95,(C,D)80);` is a bootstrap support value — a name. But `@gmod/hclust`
-reuses that slot for a cluster's merge height, so `1.5` in `(A,B)1.5;` is a
-length. `parseNewick`'s `postParenNumeric` option exists for exactly this, and
-its default resolves the ambiguity correctly for both dialects, so you should
-not normally need to set it.
+`((A,B)95,(C,D)80);` is a bootstrap support value — a name.
+
+A dendrogram has no branch lengths to record. What defines one of its clusters
+is the height at which the cluster merged, a number that belongs to the node
+rather than to the edge above it, and writers put that in the same post-paren
+slot: `@gmod/hclust` emits `(A,B)1.5`, so there `1.5` is a length.
+`parseNewick`'s `postParenNumeric` option exists for the two forms, and its
+default resolves them correctly, so you should not normally need to set it.
 
 ```js
 parseNewick(text, { postParenNumeric: 'name' })
