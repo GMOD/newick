@@ -5,72 +5,14 @@
 
 Newick parsing and small tree utilities. No dependencies.
 
-Used by [react-msaview](https://github.com/GMOD/JBrowseMSA) and
-[jbrowse-components](https://github.com/GMOD/jbrowse-components), which wanted
-the parts of `d3-hierarchy` they used without the pure ESM requirement, and
-[somewhat simpler typescript types](#types).
-
 ```sh
 npm install @gmod/newick
 ```
 
 ```js
-import { hierarchy, leaves, links, parseNewick } from '@gmod/newick'
+import { hierarchy, leaves, parseNewick } from '@gmod/newick'
 
-const root = hierarchy(
-  parseNewick('(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;'),
-  d => d.children,
-)
-leaves(root).map(n => n.data.name) // ['A', 'B', 'C', 'D']
-```
-
-Two things worth knowing, since both differ from the obvious implementation: the
-traversals are iterative, so a deep tree does not overflow the stack (a
-dendrogram can be nearly as deep as it has leaves), and the parser reads
-single-quoted labels, so a name containing a `,` or a `:` stays one label.
-
-## Drawing one
-
-There is no layout function here, because a layout is a dozen lines once you
-have the traversals. Leaves get evenly spaced rows and an internal node sits at
-the mean of its children, which is what `eachAfter` is for — a parent has to be
-placed after the children it averages:
-
-```js
-const root = hierarchy(parseNewick(text), d => d.children)
-
-const rows = leaves(root)
-rows.forEach((leaf, i) => {
-  leaf.y = (i + 0.5) * (height / rows.length)
-})
-eachAfter(root, n => {
-  if (n.children) {
-    n.y = n.children.reduce((total, c) => total + c.y, 0) / n.children.length
-  }
-  n.x = n.depth * 40
-})
-
-// one elbow per branch: down the parent's column, then across to the child
-ctx.beginPath()
-for (const { source, target } of links(root)) {
-  ctx.moveTo(source.x, source.y)
-  ctx.lineTo(source.x, target.y)
-  ctx.lineTo(target.x, target.y)
-}
-ctx.stroke()
-
-for (const leaf of rows) {
-  ctx.fillText(leaf.data.name, leaf.x + 4, leaf.y + 4)
-}
-```
-
-Swap `n.depth * 40` for a cumulative branch-length sum to get a phylogram
-instead of a cladogram.
-
-## Newick
-
-```js
-parseNewick('(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;')
+const tree = parseNewick('(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;')
 // { name: 'F', children: [
 //   { name: 'A', length: 0.1 },
 //   { name: 'B', length: 0.2 },
@@ -79,133 +21,104 @@ parseNewick('(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;')
 //     { name: 'D', length: 0.4 },
 //   ] },
 // ] }
+
+const root = hierarchy(tree, d => d.children)
+leaves(root).map(n => n.data.name) // ['A', 'B', 'C', 'D']
 ```
 
-Every field is optional: a node is
-`{ name?: string, length?: number, children?: NewickNode[] }`, and a node with
-no `children` is a leaf. The parser handles `(A:0.1,B:0.2)F`,
-`(A:0.1,B:0.2)F:0.5`, `(A,B)Foo`, `(A,B)1.5`, single-quoted labels with `''` for
-a literal quote, unlabelled nodes, and a whole tree that is one bare node
-(`A;`).
+[react-msaview](https://github.com/GMOD/JBrowseMSA) and
+[jbrowse-components](https://github.com/GMOD/jbrowse-components) use it for the
+parts of `d3-hierarchy` they needed, without the pure ESM requirement and with
+[somewhat simpler types](docs/hierarchy.md#types).
 
-Nothing else in this package is Newick-specific — `hierarchy` takes any nested
-data — so pass the result on if you want `parent`, `depth` and the traversals.
+## Parsing
 
-### The `postParenNumeric` option
-
-You should not need this. It exists for one ambiguity, and the default resolves
-that ambiguity correctly for both dialects that produce it.
-
-A bare number after a `)` has two readings. The Newick grammar puts the internal
-node's _label_ there, so `95` in `((A,B)95,(C,D)80);` is a bootstrap support
-value — a name. But `@gmod/hclust` reuses the same slot for a cluster's merge
-height, so `1.5` in `(A,B)1.5;` is a length. Nothing in the string tells the two
-apart, which is why this is a parameter rather than a guess.
+`parseNewick` produces plain nested objects, and every field is optional. A node
+is `{ name?: string, length?: number, children?: NewickNode[] }`, so a node with
+no `children` is a leaf and a tree can be one bare node:
 
 ```js
-parseNewick(text, { postParenNumeric: 'name' })
+parseNewick('A;') // { name: 'A' }
+parseNewick('(A,B)Foo;') // { name: 'Foo', children: [{ name: 'A' }, { name: 'B' }] }
+parseNewick('(A:0.1,B:0.2)F:0.5;')
+// { name: 'F', length: 0.5, children: [
+//   { name: 'A', length: 0.1 },
+//   { name: 'B', length: 0.2 },
+// ] }
 ```
 
-| value      | reads `(A,B)1.5` as | use when                                     |
-| ---------- | ------------------- | -------------------------------------------- |
-| `'auto'`   | either, see below   | you don't know which dialect _(default)_     |
-| `'name'`   | `{ name: '1.5' }`   | plain Newick, and the numbers are bootstraps |
-| `'length'` | `{ length: 1.5 }`   | `@gmod/hclust` output                        |
-
-`'auto'` reads the number as a length only when the tree contains no `:` branch
-length _anywhere_, which is the shape hclust writes and one a real phylogeny
-essentially never has. Reach for `'name'` or `'length'` when you know what wrote
-the file and want the reading pinned rather than inferred.
-
-A quoted post-paren numeric is always a name, under every setting — quoting is
-the writer saying "this is a label", and it is the only way to name a node
-something that looks like a number.
-
-## Hierarchy
-
-`hierarchy(data, childrenAccessor)` wraps plain nested data in nodes that know
-where they sit in the tree:
+Single-quoted labels keep a name containing `,`, `:` or parens in one piece,
+with `''` for a literal quote. Without them a comma inside a label splits one
+leaf into two, which returns the wrong _tree_ rather than merely a bad name:
 
 ```js
-const root = hierarchy(parseNewick(text), d => d.children)
-// { data, children, parent, depth, height }
+parseNewick("('A,x','B (y)','it''s')Root;")
+// { name: 'Root', children: [
+//   { name: 'A,x' },
+//   { name: 'B (y)' },
+//   { name: "it's" },
+// ] }
 ```
 
-`data` is the original object, `children` is `null` at a leaf, `parent` is
-`null` at the root, `depth` counts edges down from the root, and `height` counts
-edges down to the deepest leaf. The second argument pulls the child array off
-your data, so any nested shape works — `d => d.items` for something that is not
-Newick at all.
-
-Everything below takes such a node as its first argument and walks the subtree
-under it, so passing a non-root node traverses only that branch. These are the
-same operations `d3-hierarchy` offers, as free functions rather than methods —
-`leaves(root)` instead of `root.leaves()`.
-
-| call                          | returns                                                                          | order                                                 |
-| ----------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| `descendants(node)`           | the node and everything under it                                                 | pre-order — a parent before its children              |
-| `forEachDescendant(node, cb)` | nothing; calls `cb(n)`                                                           | same, without building the array                      |
-| `eachAfter(node, cb)`         | nothing; calls `cb(n)`                                                           | post-order — children, left to right, then the parent |
-| `leaves(node)`                | the childless nodes                                                              | left to right                                         |
-| `links(node)`                 | `{ source, target }` per branch                                                  | depth-first, left to right                            |
-| `forEachLink(node, cb)`       | nothing; calls `cb(source, target)`                                              | same, without building the array                      |
-| `find(node, predicate)`       | the first match, or `undefined`                                                  | pre-order                                             |
-| `sum(node, valueFn)`          | `node`, with `.value` set on every node to `valueFn(n.data)` plus its children's | post-order                                            |
-| `sort(node, compareFn)`       | `node`, with every level's children sorted in place                              | —                                                     |
-
-Which traversal you want usually follows from the direction the information
-flows. Reading a parent's value into its children (an inherited x position, a
-colour) wants `descendants`; deriving a parent's value from its children (the
-mean y in the drawing above, a subtree count) wants `eachAfter`, since the
-children must already be done.
+A bare number after a `)` is the one genuinely ambiguous token — a bootstrap
+value in plain Newick, a merge height in `@gmod/hclust` output. The default
+reads both correctly:
 
 ```js
-find(root, n => n.data.name === 'C') // the node for leaf C
-sum(root, d => (d.children ? 0 : 1)) // root.value is now the leaf count
-sort(root, (a, b) => a.data.name.localeCompare(b.data.name))
-forEachLink(root, (source, target) => drawBranch(source, target))
+parseNewick('((A:1,B:1)95,(C:1,D:1)80);') // 95 and 80 are names
+parseNewick('(A,B)1.5;') // { length: 1.5, children: [...] }
 ```
+
+See [docs/dialects.md](docs/dialects.md) for how it decides, and for the
+`postParenNumeric` option that pins the reading.
+
+## Walking the tree
+
+`hierarchy` wraps nested data — any nested data, not just Newick — in nodes that
+know where they sit:
+
+```js
+const root = hierarchy(tree, d => d.children)
+
+root.depth // 0, and 1 for its children
+root.height // 2 — edges down to the deepest leaf
+root.children[2].data.name // 'E'
+root.children[2].parent === root // true
+root.children[2].children[0].children // null at a leaf
+```
+
+The traversals are free functions taking a node first, so each walks the subtree
+under whatever you hand it:
+
+```js
+import { descendants, find, leaves, links, sum } from '@gmod/newick'
+
+descendants(root).map(n => n.data.name) // ['F', 'A', 'B', 'E', 'C', 'D']
+leaves(root.children[2]).length // 2 — only under E
+links(root).length // 5 — { source, target } per branch
+find(root, n => n.data.name === 'C').data.length // 0.3
+sum(root, d => (d.children ? 0 : 1)).value // 4 — leaves under the root
+```
+
+Two more, `eachAfter` and `sort`, plus the allocation-free `forEachDescendant`
+and `forEachLink`, are in [docs/hierarchy.md](docs/hierarchy.md) with the order
+each one visits in. Every traversal is iterative, so a deep tree does not
+overflow the stack — a dendrogram can be nearly as deep as it has leaves.
 
 What is not here: the layout algorithms (`cluster`, `tree`, `treemap`, `pack`,
-`partition`) and `stratify`. If you want those, use `d3-hierarchy`.
+`partition`) and `stratify`. Use `d3-hierarchy` if you want those — though a
+dendrogram layout is a dozen lines against these traversals, which
+[docs/drawing.md](docs/drawing.md) works through.
 
-### Types
+## Docs
 
-There are three of them: `HierarchyNode<Datum>`, `HierarchyLink<Node>`, and
-`TreeLike<Node>`, which is all a traversal asks of a node:
-
-```ts
-interface TreeLike<N> {
-  children: N[] | null
-}
-```
-
-Every traversal is generic over the _node_ rather than over its data —
-`descendants<N extends TreeLike<N>>(node: N): N[]` — so a caller that extends
-`HierarchyNode` with its own layout fields gets that type back, and a nested
-shape that is not a `HierarchyNode` at all still walks:
-
-```ts
-interface MyNode extends HierarchyNode<Datum> {
-  children: MyNode[] | null
-  x?: number
-}
-leaves(myRoot) // MyNode[], not HierarchyNode<Datum>[]
-```
-
-`d3-hierarchy` gets the same subtype preservation from polymorphic `this`, which
-costs it a `new(data: Datum): this` constructor signature on the node interface
-to hold the trick together, and means the layouts' `x`/`y` have to live on the
-base node because there is nowhere else to put them. It also carries the
-`this`-binding convention through every traversal —
-`each<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this`
-against our `forEachDescendant(node, cb)`. Free functions over a bare structural
-constraint need none of that: extend the node in your own file and the
-traversals follow, no module augmentation.
-
-The comparison is only worth so much, though — most of `@types/d3-hierarchy`'s
-928 lines are the layouts and `stratify`, which this package does not have.
+- [docs/hierarchy.md](docs/hierarchy.md) — `hierarchy`, every traversal and the
+  order it visits in, and the types that keep a caller's own node type through a
+  walk
+- [docs/drawing.md](docs/drawing.md) — laying out and drawing a dendrogram or
+  phylogram on a canvas
+- [docs/dialects.md](docs/dialects.md) — the bare-number-after-`)` ambiguity and
+  the `postParenNumeric` option
 
 ## License
 
