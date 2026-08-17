@@ -17,4 +17,4 @@ export {
   sort,
   sum,
 } from './hierarchy.ts'
-export type { HierarchyLink, HierarchyNode } from './hierarchy.ts'
+export type { HierarchyLink, HierarchyNode, TreeLike } from './hierarchy.ts'

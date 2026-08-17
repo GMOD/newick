@@ -8,7 +8,7 @@ Newick parsing and small tree utilities. No dependencies.
 Used by [react-msaview](https://github.com/GMOD/JBrowseMSA) and
 [jbrowse-components](https://github.com/GMOD/jbrowse-components), which wanted
 the parts of `d3-hierarchy` they used without the pure ESM requirement, and
-somewhat simpler typescript types.
+[somewhat simpler typescript types](#types).
 
 ```sh
 npm install @gmod/newick
@@ -170,9 +170,21 @@ forEachLink(root, (source, target) => drawBranch(source, target))
 What is not here: the layout algorithms (`cluster`, `tree`, `treemap`, `pack`,
 `partition`) and `stratify`. If you want those, use `d3-hierarchy`.
 
-The traversals are generic over the _node_ type rather than its data, so a
-caller that extends `HierarchyNode` with its own layout fields gets its own type
-back:
+### Types
+
+There are three of them: `HierarchyNode<Datum>`, `HierarchyLink<Node>`, and
+`TreeLike<Node>`, which is all a traversal asks of a node:
+
+```ts
+interface TreeLike<N> {
+  children: N[] | null
+}
+```
+
+Every traversal is generic over the _node_ rather than over its data —
+`descendants<N extends TreeLike<N>>(node: N): N[]` — so a caller that extends
+`HierarchyNode` with its own layout fields gets that type back, and a nested
+shape that is not a `HierarchyNode` at all still walks:
 
 ```ts
 interface MyNode extends HierarchyNode<Datum> {
@@ -181,6 +193,19 @@ interface MyNode extends HierarchyNode<Datum> {
 }
 leaves(myRoot) // MyNode[], not HierarchyNode<Datum>[]
 ```
+
+`d3-hierarchy` gets the same subtype preservation from polymorphic `this`, which
+costs it a `new(data: Datum): this` constructor signature on the node interface
+to hold the trick together, and means the layouts' `x`/`y` have to live on the
+base node because there is nowhere else to put them. It also carries the
+`this`-binding convention through every traversal —
+`each<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this`
+against our `forEachDescendant(node, cb)`. Free functions over a bare structural
+constraint need none of that: extend the node in your own file and the
+traversals follow, no module augmentation.
+
+The comparison is only worth so much, though — most of `@types/d3-hierarchy`'s
+928 lines are the layouts and `stratify`, which this package does not have.
 
 ## License
 

@@ -24,11 +24,30 @@ export interface HierarchyLink<N> {
   target: N
 }
 
-// The traversals are generic over the *node* type, not over its data, so a
-// caller that extends HierarchyNode with its own layout fields gets its own type
-// back instead of the base one.
-interface TreeLike<N> {
+/**
+ * What a traversal needs of a node, and the whole of it.
+ *
+ * The traversals are generic over the *node* type rather than over its data —
+ * `N extends TreeLike<N>` — so a caller that extends HierarchyNode with its own
+ * layout fields gets its own type back instead of the base one, and a shape
+ * that is not a HierarchyNode at all still walks.
+ */
+export interface TreeLike<N> {
   children: N[] | null
+}
+
+/** A node `sum` can write to. */
+interface Summable<N> extends TreeLike<N> {
+  data: unknown
+  value?: number
+}
+
+function pushChildren<N extends TreeLike<N>>(stack: N[], node: N) {
+  if (node.children) {
+    for (let i = node.children.length - 1; i >= 0; i--) {
+      stack.push(node.children[i]!)
+    }
+  }
 }
 
 /**
@@ -38,32 +57,31 @@ interface TreeLike<N> {
  */
 export function descendants<N extends TreeLike<N>>(node: N): N[] {
   const result: N[] = []
+  forEachDescendant(node, n => {
+    result.push(n)
+  })
+  return result
+}
+
+export function forEachDescendant<N extends TreeLike<N>>(
+  node: N,
+  cb: (n: N) => void,
+) {
   const stack = [node]
   while (stack.length > 0) {
     const n = stack.pop()!
-    result.push(n)
-    if (n.children) {
-      for (let i = n.children.length - 1; i >= 0; i--) {
-        stack.push(n.children[i]!)
-      }
-    }
+    cb(n)
+    pushChildren(stack, n)
   }
-  return result
 }
 
 export function leaves<N extends TreeLike<N>>(node: N): N[] {
   const result: N[] = []
-  const stack = [node]
-  while (stack.length > 0) {
-    const n = stack.pop()!
-    if (n.children) {
-      for (let i = n.children.length - 1; i >= 0; i--) {
-        stack.push(n.children[i]!)
-      }
-    } else {
+  forEachDescendant(node, n => {
+    if (!n.children) {
       result.push(n)
     }
-  }
+  })
   return result
 }
 
@@ -100,15 +118,6 @@ export function links<N extends TreeLike<N>>(node: N): HierarchyLink<N>[] {
     result.push({ source, target })
   })
   return result
-}
-
-export function forEachDescendant<N extends TreeLike<N>>(
-  node: N,
-  cb: (n: N) => void,
-) {
-  for (const n of descendants(node)) {
-    cb(n)
-  }
 }
 
 /**
@@ -189,7 +198,7 @@ export function hierarchy<T>(
  * for the datum cannot be inferred from the arguments, so callers would have to
  * write both out or get `unknown` in the callback.
  */
-export function sum<N extends TreeLike<N> & { data: unknown; value?: number }>(
+export function sum<N extends Summable<N>>(
   node: N,
   valueFn: (d: N['data']) => number,
 ): N {
@@ -234,11 +243,7 @@ export function find<N extends TreeLike<N>>(
     if (predicate(n)) {
       return n
     }
-    if (n.children) {
-      for (let i = n.children.length - 1; i >= 0; i--) {
-        stack.push(n.children[i]!)
-      }
-    }
+    pushChildren(stack, n)
   }
   return undefined
 }
