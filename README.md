@@ -1,5 +1,8 @@
 # @gmod/newick
 
+[![NPM version](https://img.shields.io/npm/v/@gmod/newick.svg?style=flat-square)](https://npmjs.org/package/@gmod/newick)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/GMOD/newick/publish.yml?branch=main)](https://github.com/GMOD/newick/actions/workflows/publish.yml)
+
 Newick parsing and small tree utilities. No dependencies.
 
 Used by [react-msaview](https://github.com/GMOD/JBrowseMSA) and
@@ -66,50 +69,105 @@ instead of a cladogram.
 ## Newick
 
 ```js
-parseNewick(text, options?)
+parseNewick('(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;')
+// { name: 'F', children: [
+//   { name: 'A', length: 0.1 },
+//   { name: 'B', length: 0.2 },
+//   { name: 'E', length: 0.5, children: [
+//     { name: 'C', length: 0.3 },
+//     { name: 'D', length: 0.4 },
+//   ] },
+// ] }
 ```
 
-Returns `{ name?, length?, children? }`.
+Every field is optional: a node is
+`{ name?: string, length?: number, children?: NewickNode[] }`, and a node with
+no `children` is a leaf. The parser handles `(A:0.1,B:0.2)F`,
+`(A:0.1,B:0.2)F:0.5`, `(A,B)Foo`, `(A,B)1.5`, single-quoted labels with `''` for
+a literal quote, unlabelled nodes, and a whole tree that is one bare node
+(`A;`).
 
-Handles `(A:0.1,B:0.2)F`, `(A:0.1,B:0.2)F:0.5`, `(A,B)Foo`, `(A,B)1.5`,
-single-quoted labels with `''` for a literal quote, unlabelled nodes, and a
-whole tree that is one bare node (`A;`).
+Nothing else in this package is Newick-specific — `hierarchy` takes any nested
+data — so pass the result on if you want `parent`, `depth` and the traversals.
 
-### `postParenNumeric`
+### The `postParenNumeric` option
 
-A bare number after a `)` is ambiguous. Newick puts the internal node's _label_
-there, so `95` in `((A,B)95,(C,D)80);` is a bootstrap value, but `@gmod/hclust`
-reuses the slot for a cluster's merge height. Nothing in the string tells them
-apart, hence the option.
+You should not need this. It exists for one ambiguity, and the default resolves
+that ambiguity correctly for both dialects that produce it.
 
-| value      | behaviour                                                        |
-| ---------- | ---------------------------------------------------------------- |
-| `'auto'`   | length only when the tree has no `:` length anywhere _(default)_ |
-| `'name'`   | always a name — plain Newick                                     |
-| `'length'` | always a length — `@gmod/hclust` output                          |
+A bare number after a `)` has two readings. The Newick grammar puts the internal
+node's _label_ there, so `95` in `((A,B)95,(C,D)80);` is a bootstrap support
+value — a name. But `@gmod/hclust` reuses the same slot for a cluster's merge
+height, so `1.5` in `(A,B)1.5;` is a length. Nothing in the string tells the two
+apart, which is why this is a parameter rather than a guess.
 
-A quoted post-paren numeric is always a name, under every setting — it is the
-only way to name a node something that looks like a number.
+```js
+parseNewick(text, { postParenNumeric: 'name' })
+```
+
+| value      | reads `(A,B)1.5` as | use when                                     |
+| ---------- | ------------------- | -------------------------------------------- |
+| `'auto'`   | either, see below   | you don't know which dialect _(default)_     |
+| `'name'`   | `{ name: '1.5' }`   | plain Newick, and the numbers are bootstraps |
+| `'length'` | `{ length: 1.5 }`   | `@gmod/hclust` output                        |
+
+`'auto'` reads the number as a length only when the tree contains no `:` branch
+length _anywhere_, which is the shape hclust writes and one a real phylogeny
+essentially never has. Reach for `'name'` or `'length'` when you know what wrote
+the file and want the reading pinned rather than inferred.
+
+A quoted post-paren numeric is always a name, under every setting — quoting is
+the writer saying "this is a label", and it is the only way to name a node
+something that looks like a number.
 
 ## Hierarchy
 
-`hierarchy(data, childrenAccessor)` wraps plain data in nodes carrying `data`,
-`children`, `parent`, `depth` and `height`.
+`hierarchy(data, childrenAccessor)` wraps plain nested data in nodes that know
+where they sit in the tree:
 
-These are the same operations `d3-hierarchy` offers, as free functions rather
-than methods on the node — `leaves(root)` instead of `root.leaves()`. What is
-not here: the layout algorithms (`cluster`, `tree`, `treemap`, `pack`,
+```js
+const root = hierarchy(parseNewick(text), d => d.children)
+// { data, children, parent, depth, height }
+```
+
+`data` is the original object, `children` is `null` at a leaf, `parent` is
+`null` at the root, `depth` counts edges down from the root, and `height` counts
+edges down to the deepest leaf. The second argument pulls the child array off
+your data, so any nested shape works — `d => d.items` for something that is not
+Newick at all.
+
+Everything below takes such a node as its first argument and walks the subtree
+under it, so passing a non-root node traverses only that branch. These are the
+same operations `d3-hierarchy` offers, as free functions rather than methods —
+`leaves(root)` instead of `root.leaves()`.
+
+| call                          | returns                                                                          | order                                                 |
+| ----------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `descendants(node)`           | the node and everything under it                                                 | pre-order — a parent before its children              |
+| `forEachDescendant(node, cb)` | nothing; calls `cb(n)`                                                           | same, without building the array                      |
+| `eachAfter(node, cb)`         | nothing; calls `cb(n)`                                                           | post-order — children, left to right, then the parent |
+| `leaves(node)`                | the childless nodes                                                              | left to right                                         |
+| `links(node)`                 | `{ source, target }` per branch                                                  | depth-first, left to right                            |
+| `forEachLink(node, cb)`       | nothing; calls `cb(source, target)`                                              | same, without building the array                      |
+| `find(node, predicate)`       | the first match, or `undefined`                                                  | pre-order                                             |
+| `sum(node, valueFn)`          | `node`, with `.value` set on every node to `valueFn(n.data)` plus its children's | post-order                                            |
+| `sort(node, compareFn)`       | `node`, with every level's children sorted in place                              | —                                                     |
+
+Which traversal you want usually follows from the direction the information
+flows. Reading a parent's value into its children (an inherited x position, a
+colour) wants `descendants`; deriving a parent's value from its children (the
+mean y in the drawing above, a subtree count) wants `eachAfter`, since the
+children must already be done.
+
+```js
+find(root, n => n.data.name === 'C') // the node for leaf C
+sum(root, d => (d.children ? 0 : 1)) // root.value is now the leaf count
+sort(root, (a, b) => a.data.name.localeCompare(b.data.name))
+forEachLink(root, (source, target) => drawBranch(source, target))
+```
+
+What is not here: the layout algorithms (`cluster`, `tree`, `treemap`, `pack`,
 `partition`) and `stratify`. If you want those, use `d3-hierarchy`.
-
-| function                            | order                                  |
-| ----------------------------------- | -------------------------------------- |
-| `descendants` / `forEachDescendant` | pre-order (parents first)              |
-| `eachAfter`                         | post-order (children first)            |
-| `leaves`                            | left to right                          |
-| `links` / `forEachLink`             | depth-first, left to right             |
-| `find`                              | first pre-order match                  |
-| `sum`                               | accumulates children into `node.value` |
-| `sort`                              | sorts every level in place             |
 
 The traversals are generic over the _node_ type rather than its data, so a
 caller that extends `HierarchyNode` with its own layout fields gets its own type
