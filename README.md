@@ -58,6 +58,15 @@ parseNewick("('A,x','B (y)','it''s')Root;")
 // ] }
 ```
 
+Square brackets are a comment, and the parser drops what is inside them. That is
+where NHX and BEAST hang their per-node metadata, and the `:` characters inside
+an `[&&NHX:...]` block read as branch lengths otherwise:
+
+```js
+parseNewick('(A:0.1[&&NHX:S=human],B:0.2[&&NHX:S=mouse]);')
+// { children: [{ name: 'A', length: 0.1 }, { name: 'B', length: 0.2 }] }
+```
+
 A bare number after a `)` sits in the grammar's label slot, so in a phylogeny it
 is a bootstrap support value. A tree carrying no `:` branch length _anywhere_ is
 not a phylogeny, though — it is a dendrogram, where that number is the height

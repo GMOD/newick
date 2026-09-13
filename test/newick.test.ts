@@ -202,3 +202,48 @@ describe('postParenNumeric', () => {
     })
   })
 })
+
+describe('bracketed comments', () => {
+  // NHX hangs per-node metadata off every node; the colons inside it read as
+  // branch lengths, so the tree came back with NaN lengths throughout
+  test('drops NHX annotations', () => {
+    expect(
+      parseNewick('(A:0.1[&&NHX:S=human],B:0.2[&&NHX:S=mouse])95:0.0[&&NHX:B=95];', {
+        postParenNumeric: 'name',
+      }),
+    ).toEqual({
+      name: '95',
+      length: 0,
+      children: [
+        { name: 'A', length: 0.1 },
+        { name: 'B', length: 0.2 },
+      ],
+    })
+  })
+
+  test('drops a BEAST annotation rather than naming the leaf after it', () => {
+    const tree = parseNewick('(A[&rate=1.0]:0.1,B[&rate=2.0]:0.2);')
+    expect(tree.children!.map(c => [c.name, c.length])).toEqual([
+      ['A', 0.1],
+      ['B', 0.2],
+    ])
+  })
+
+  test('counts nesting, and tolerates an unterminated comment', () => {
+    expect(parseNewick('(A[x[y]z]:1,B:2);').children).toEqual([
+      { name: 'A', length: 1 },
+      { name: 'B', length: 2 },
+    ])
+    expect(parseNewick('(A:1,B:2)[unterminated').children).toEqual([
+      { name: 'A', length: 1 },
+      { name: 'B', length: 2 },
+    ])
+  })
+
+  test('keeps brackets inside a quoted label', () => {
+    expect(parseNewick("('A [strain 1]':0.1,B:0.2);").children).toEqual([
+      { name: 'A [strain 1]', length: 0.1 },
+      { name: 'B', length: 0.2 },
+    ])
+  })
+})

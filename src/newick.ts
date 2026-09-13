@@ -12,6 +12,7 @@
  *   (A,B)Foo              — non-numeric post-paren stored as `name`
  *   (A,B)1.5              — numeric post-paren; see `postParenNumeric` below
  *   ('A (x)','B,y')1.5    — single-quoted labels, `''` for a literal quote
+ *   (A:0.1[&&NHX:S=human]) — bracketed comments (NHX, BEAST), dropped
  *
  * The quoted form is not decoration: a leaf name is an arbitrary string out of
  * somebody's data file, and one holding a `(` or a `,` is grammar rather than a
@@ -105,6 +106,20 @@ function tokenize(s: string): Token[] {
           i++
         } else {
           break
+        }
+      }
+    } else if (c === '[') {
+      // a bracketed comment, which is where NHX (`[&&NHX:S=human]`) and BEAST
+      // (`[&rate=1.0]`) hang their per-node metadata. Dropping it is what keeps
+      // the `:` inside NHX from being read as a branch length, and the metadata
+      // itself out of the leaf's name. Nesting is counted rather than assumed
+      // away, so a comment holding a `[` does not end early
+      for (let depth = 1; i < s.length - 1 && depth > 0; ) {
+        i++
+        if (s[i] === '[') {
+          depth++
+        } else if (s[i] === ']') {
+          depth--
         }
       }
     } else if (c === '(' || c === ')' || c === ',' || c === ':' || c === ';') {
