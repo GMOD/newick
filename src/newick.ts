@@ -114,7 +114,7 @@ function tokenize(s: string): Token[] {
       // the `:` inside NHX from being read as a branch length, and the metadata
       // itself out of the leaf's name. Nesting is counted rather than assumed
       // away, so a comment holding a `[` does not end early
-      for (let depth = 1; i < s.length - 1 && depth > 0; ) {
+      for (let depth = 1; i < s.length - 1 && depth > 0;) {
         i++
         if (s[i] === '[') {
           depth++

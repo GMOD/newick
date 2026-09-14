@@ -208,9 +208,12 @@ describe('bracketed comments', () => {
   // branch lengths, so the tree came back with NaN lengths throughout
   test('drops NHX annotations', () => {
     expect(
-      parseNewick('(A:0.1[&&NHX:S=human],B:0.2[&&NHX:S=mouse])95:0.0[&&NHX:B=95];', {
-        postParenNumeric: 'name',
-      }),
+      parseNewick(
+        '(A:0.1[&&NHX:S=human],B:0.2[&&NHX:S=mouse])95:0.0[&&NHX:B=95];',
+        {
+          postParenNumeric: 'name',
+        },
+      ),
     ).toEqual({
       name: '95',
       length: 0,
