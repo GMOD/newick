@@ -1,3 +1,26 @@
+## [1.0.3](https://github.com/GMOD/newick/compare/v1.0.2...v1.0.3) (2026-09-14)
+
+### Bug Fixes
+
+- Drop bracketed comments, so NHX and BEAST metadata stops becoming lengths and names ([7b3532e](https://github.com/GMOD/newick/commit/7b3532eebbc49f368da568f313fb6f3f83e709e8))
+
+### Documentation
+
+- Clarify the API tables and add badges ([d859adc](https://github.com/GMOD/newick/commit/d859adcc5e77e3c98b88c669e472b3b82cdc8580))
+- Note the simpler types in the intro ([068742f](https://github.com/GMOD/newick/commit/068742f4bb6db3ed4d89f4b5833618a352de3f78))
+- Split the README into docs/, and show outputs in the samples ([1880c72](https://github.com/GMOD/newick/commit/1880c72395b893a7b83d03f537b701b8e2f982ad))
+- Draw the example tree where the samples assert against it ([d3d6f60](https://github.com/GMOD/newick/commit/d3d6f60724b2fc76e43f532f05b5f83370cdb9bb))
+- Describe the post-paren number by dialect, not by culprit ([a764f2b](https://github.com/GMOD/newick/commit/a764f2b2edfb224cebd8cc95b841bbccbf23fa1a))
+- Hclust writes `:` branch lengths from v5 ([493f362](https://github.com/GMOD/newick/commit/493f3620bb4d9bd72a0c0d7a93fd214fdd92d17c))
+
+### Refactoring
+
+- Name the sum constraint, share the pre-order push, export TreeLike ([5beb28b](https://github.com/GMOD/newick/commit/5beb28b88acf1a158579aa7ccd1d6481d2e4dae4))
+
+### Styling
+
+- Format ([88e1dc9](https://github.com/GMOD/newick/commit/88e1dc9ca8b092eaeeb3345cb87af2614baf8a74))
+
 ## [1.0.2](https://github.com/GMOD/newick/compare/v1.0.1...v1.0.2) (2026-08-16)
 
 ### Documentation
