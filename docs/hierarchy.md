@@ -3,7 +3,7 @@
 `@gmod/newick` carries the `d3-hierarchy` traversals a tree viewer actually
 needs, as free functions rather than methods — `leaves(root)` instead of
 `root.leaves()`. `hierarchy` takes any nested data, so the walks below apply to
-whatever shape you hand it, not just a parsed Newick tree.
+any nested data passed to it.
 
 Every traversal here is iterative, over an explicit stack. A phylogeny or a
 single-linkage dendrogram can be a caterpillar, as deep as it has leaves, and

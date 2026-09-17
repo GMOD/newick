@@ -2,8 +2,8 @@
 
 There is no layout function in `@gmod/newick`, because a dendrogram layout is a
 dozen lines once you have the traversals. Leaves get evenly spaced rows, and an
-internal node sits at the mean of its children's rows. `eachAfter` computes this
-correctly, since it visits a parent only after the children it averages.
+internal node sits at the mean of its children's rows. Place the internal nodes
+with `eachAfter`, which visits each parent after all of its children.
 
 ```js
 import { eachAfter, hierarchy, leaves, links, parseNewick } from '@gmod/newick'
