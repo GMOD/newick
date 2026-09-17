@@ -1,9 +1,9 @@
 # Drawing a tree
 
 There is no layout function in `@gmod/newick`, because a dendrogram layout is a
-dozen lines once you have the traversals. Leaves get evenly spaced rows and an
-internal node sits at the mean of its children's rows, which is what `eachAfter`
-is for — a parent has to be placed after the children it averages.
+dozen lines once you have the traversals. Leaves get evenly spaced rows, and an
+internal node sits at the mean of its children's rows. `eachAfter` computes this
+correctly, since it visits a parent only after the children it averages.
 
 ```js
 import { eachAfter, hierarchy, leaves, links, parseNewick } from '@gmod/newick'
@@ -58,7 +58,7 @@ Note `F` sits at `83.33` rather than halfway down the canvas: an internal node
 averages its immediate children, not its leaves, so a lopsided tree pulls its
 ancestors toward the side carrying more branches.
 
-Two variations worth knowing. Swapping `n.depth * 40` for a cumulative
+Two variations are worth knowing. Swapping `n.depth * 40` for a cumulative
 branch-length sum turns the cladogram into a phylogram, where a branch's drawn
 length is the evolutionary distance it carries:
 
@@ -73,5 +73,5 @@ forEachDescendant(root, n => {
 
 That second walk has to be pre-order — `forEachDescendant`, not `eachAfter` —
 because each node reads its position from its parent, which must already be
-placed. And swapping the elbows for `ctx.lineTo(target.x, target.y)` alone gives
+placed. Swapping the elbows for `ctx.lineTo(target.x, target.y)` alone gives
 straight diagonal branches instead of the rectangular dendrogram style.

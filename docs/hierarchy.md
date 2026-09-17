@@ -2,16 +2,16 @@
 
 `@gmod/newick` carries the `d3-hierarchy` traversals a tree viewer actually
 needs, as free functions rather than methods — `leaves(root)` instead of
-`root.leaves()`. Nothing about them is Newick-specific: `hierarchy` takes any
-nested data, so the walks below apply to whatever shape you hand it.
+`root.leaves()`. `hierarchy` takes any nested data, so the walks below apply to
+whatever shape you hand it, not just a parsed Newick tree.
 
-Every traversal here is iterative, over an explicit stack. That matters more
-than it sounds: a phylogeny or a single-linkage dendrogram can be a caterpillar,
-as deep as it has leaves, and the recursive form throws
-`RangeError: Maximum call stack size exceeded` at around 5000 tips.
+Every traversal here is iterative, over an explicit stack. A phylogeny or a
+single-linkage dendrogram can be a caterpillar, as deep as it has leaves, and
+the recursive form throws `RangeError: Maximum call stack size exceeded` at
+around 5000 tips.
 
-`hierarchy(data, childrenAccessor)` wraps plain nested data in nodes that know
-where they sit. The accessor pulls the child array off your data, so
+`hierarchy(data, childrenAccessor)` wraps plain nested data in nodes that record
+depth, height, and parent. The accessor pulls the child array off your data, so
 `d => d.items` works as well as `d => d.children`. Every example below runs
 against this tree, whose `depth` counts edges down from the root and whose
 `height` counts edges down to the deepest leaf beneath a node:
@@ -90,9 +90,9 @@ forEachLink(root, (source, target) => drawBranch(source, target))
 
 Which traversal you want usually follows from the direction the information
 flows. Reading a parent's value down into its children — an inherited x
-position, a colour — wants `descendants` or `forEachDescendant`, since a parent
+position, a colour — needs `descendants` or `forEachDescendant`, since a parent
 is visited first. Deriving a parent's value from its children — a subtree count,
-the mean y in [docs/drawing.md](drawing.md) — wants `eachAfter`, since the
+the mean y in [docs/drawing.md](drawing.md) — needs `eachAfter`, since the
 children must already be done.
 
 `eachAfter` is not `descendants().reverse()`. Both put children before parents,
@@ -117,7 +117,7 @@ leaves(root).map(n => n.data.name) // ['D', 'C', 'B', 'A'] — E's children flip
 ## Types
 
 There are three: `HierarchyNode<Datum>`, `HierarchyLink<Node>`, and
-`TreeLike<Node>`, which is all a traversal asks of a node:
+`TreeLike<Node>`, the only structure a traversal requires from a node:
 
 ```ts
 interface TreeLike<N> {
@@ -145,9 +145,9 @@ leaves(myRoot)[0].x // fine, no cast
 `d3-hierarchy` preserves subtypes too, but its traversals are methods on a node
 class, so it does the job with polymorphic `this` instead of a generic
 parameter. That mechanism costs its node interface a `new(data: Datum): this`
-constructor signature to hold the trick together, and it means the layouts'
-`x`/`y` have to live on the base node because there is nowhere else to put them.
-It also carries a `this`-binding convention through every traversal —
+constructor signature, and it means the layouts' `x`/`y` have to live on the
+base node because there is nowhere else to put them. It also carries a
+`this`-binding convention through every traversal —
 `each<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this`
 against our `forEachDescendant(node, cb)`. Free functions over a bare structural
 constraint need none of that: extend the node in your own file and the

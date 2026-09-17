@@ -82,9 +82,9 @@ and the `postParenNumeric` option that pins the reading rather than inferring
 it.
 
 `hierarchy` wraps nested data — any nested data, not just Newick — in nodes that
-know where they sit. `depth` counts edges down from the root and `height` counts
-edges down to the deepest leaf beneath the node, both filled in for every node
-up front:
+record their own position. `depth` counts edges down from the root and `height`
+counts edges down to the deepest leaf beneath the node, both filled in for every
+node up front:
 
 ```js
 const root = hierarchy(
@@ -128,8 +128,8 @@ and `forEachLink`, are in [docs/hierarchy.md](docs/hierarchy.md) with the order
 each one visits in. Every traversal is iterative, so a deep tree does not
 overflow the stack — a dendrogram can be nearly as deep as it has leaves.
 
-What is not here: the layout algorithms (`cluster`, `tree`, `treemap`, `pack`,
-`partition`) and `stratify`. Use `d3-hierarchy` if you want those — though a
+`@gmod/newick` has no layout algorithms (`cluster`, `tree`, `treemap`, `pack`,
+`partition`) or `stratify`. Use `d3-hierarchy` if you want those — though a
 dendrogram layout is a dozen lines against these traversals, which
 [docs/drawing.md](docs/drawing.md) works through.
 
