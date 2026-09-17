@@ -127,8 +127,8 @@ interface TreeLike<N> {
 
 Every traversal is generic over the _node_ rather than over its data —
 `descendants<N extends TreeLike<N>>(node: N): N[]` — so a caller that extends
-`HierarchyNode` with its own layout fields gets that type back, and a nested
-shape that is not a `HierarchyNode` at all still walks:
+`HierarchyNode` with its own layout fields gets that type back, and the
+traversals also walk a nested structure that is not a `HierarchyNode` at all:
 
 ```ts
 interface MyNode extends HierarchyNode<Datum> {
@@ -145,8 +145,8 @@ leaves(myRoot)[0].x // fine, no cast
 `d3-hierarchy` preserves subtypes too, but its traversals are methods on a node
 class, so it does the job with polymorphic `this` instead of a generic
 parameter. That mechanism costs its node interface a `new(data: Datum): this`
-constructor signature, and it means the layouts' `x`/`y` have to live on the
-base node because there is nowhere else to put them. It also carries a
+constructor signature, and it means the layouts' `x`/`y` have to be declared on
+the base node because there is nowhere else to put them. It also carries a
 `this`-binding convention through every traversal —
 `each<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this`
 against our `forEachDescendant(node, cb)`. Free functions over a bare structural

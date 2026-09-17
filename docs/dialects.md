@@ -1,7 +1,7 @@
 # The bare number after a `)`
 
-One token in Newick has two readings, and nothing local to the string tells them
-apart. The grammar puts the internal node's _label_ after a `)`, so `95` in
+One token in Newick has two readings, and the string alone does not distinguish
+them. The grammar puts the internal node's _label_ after a `)`, so `95` in
 `((A,B)95,(C,D)80);` is a bootstrap support value — a name.
 
 A dendrogram's cluster height — the value it merged at — belongs to the node

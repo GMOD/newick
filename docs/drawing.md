@@ -36,8 +36,8 @@ for (const leaf of rows) {
 ```
 
 Run that over `'(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;'` in a 200px-tall canvas and
-the four leaves land on evenly spaced rows, `E` on the mean of `C` and `D`, and
-the root on the mean of `A`, `B` and `E`:
+the code places the four leaves on evenly spaced rows, `E` at the mean of `C`
+and `D`, and the root at the mean of `A`, `B` and `E`:
 
 ```js
 // x = depth * 40      y
