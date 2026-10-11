@@ -68,9 +68,9 @@ parseNewick('(A:0.1[&&NHX:S=human],B:0.2[&&NHX:S=mouse]);')
 ```
 
 A bare number after a `)` sits in the grammar's label slot, so in a phylogeny it
-is a bootstrap support value. A tree carrying no `:` branch length _anywhere_ is
-not a phylogeny, though — it is a dendrogram, where that number is the height
-the cluster merged at — and `parseNewick` reads the two accordingly:
+is a bootstrap support value. A tree with no `:` branch length _anywhere_ is not
+a phylogeny, though — it is a dendrogram, where that number is the height the
+cluster merged at — and `parseNewick` reads the two accordingly:
 
 ```js
 parseNewick('((A:1,B:1)95,(C:1,D:1)80);') // 95 and 80 are names
