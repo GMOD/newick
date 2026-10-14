@@ -28,7 +28,7 @@ parseNewick(text, { postParenNumeric: 'name' })
 `'auto'` reads a number after a `)` as a length only when the tree contains no
 `:` branch length _anywhere_. A writer that puts heights in the label produces
 that pattern, and a real phylogeny essentially never has it. If the string
-contains any `:`, every number after a `)` is a name:
+contains any `:`, every post-paren number is a name:
 
 ```js
 parseNewick('(A,B)1.5;')
@@ -41,9 +41,8 @@ parseNewick('((A:1,B:1)95,(C:1,D:1)80);')
 // ] }
 ```
 
-Support values run 0-100, so a parser that read them as lengths would add them
-to the branch distances, and next to those values the real branch lengths would
-shrink to nothing in the drawing.
+Support values run 0-100, so a parser that read them as lengths would sum them
+into the branch distances and flatten the real ones out of the drawing entirely.
 
 ## Setting the option
 
@@ -61,11 +60,11 @@ parseNewick('((A:1,B:1)95,(C:1,D:1)80);', { postParenNumeric: 'length' })
 // ] }
 ```
 
-## Quoted numbers
+## Quoting always wins
 
-A quoted number after a `)` is a name under every setting, `'length'` included.
+A quoted post-paren numeric is a name under every setting, `'length'` included.
 A writer quotes a label to mark it as a label, and quoting is the only way to
-give a node a name that looks like a number:
+name a node something that looks like a number:
 
 ```js
 parseNewick("(A,B)'1.5';", { postParenNumeric: 'length' })

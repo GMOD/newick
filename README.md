@@ -79,8 +79,8 @@ parseNewick('(A,B)1.5;') // { length: 1.5, children: [{ name: 'A' }, { name: 'B'
 ```
 
 [docs/dialects.md](docs/dialects.md) covers which writers produce which form,
-and the `postParenNumeric` option, which sets the reading instead of letting the
-parser infer it.
+and the `postParenNumeric` option that pins the reading rather than inferring
+it.
 
 `hierarchy` wraps any nested data, Newick or otherwise, in nodes that hold their
 position in the tree. `depth` counts edges down from the root and `height`

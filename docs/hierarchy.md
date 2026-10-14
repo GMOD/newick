@@ -10,8 +10,8 @@ single-linkage dendrogram can be a caterpillar, as deep as it has leaves, and
 the recursive form throws `RangeError: Maximum call stack size exceeded` at
 around 5000 tips.
 
-`hierarchy(data, childrenAccessor)` wraps plain nested data in nodes with depth,
-height, and parent fields. The accessor returns the child array from your data,
+`hierarchy(data, childrenAccessor)` wraps plain nested data in nodes that record
+depth, height, and parent. The accessor returns the child array from your data,
 so `d => d.items` works as well as `d => d.children`. Every example below runs
 against this tree, whose `depth` counts edges down from the root and whose
 `height` counts edges down to the deepest leaf beneath a node:
