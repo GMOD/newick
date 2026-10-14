@@ -2,8 +2,6 @@
 
 `@gmod/newick` provides the `d3-hierarchy` traversals a tree viewer needs, as
 free functions rather than methods: `leaves(root)` instead of `root.leaves()`.
-`hierarchy` takes any nested data, so the walks below apply to any nested data
-passed to it.
 
 Every traversal here is iterative, over an explicit stack. A phylogeny or a
 single-linkage dendrogram can be a caterpillar, as deep as it has leaves, and
@@ -143,17 +141,13 @@ leaves(myRoot) // MyNode[], not HierarchyNode<Datum>[]
 leaves(myRoot)[0].x // fine, no cast
 ```
 
-`d3-hierarchy` preserves subtypes too, but its traversals are methods on a node
-class, so it does the job with polymorphic `this` instead of a generic
-parameter. That mechanism requires a `new(data: Datum): this` constructor
-signature on its node interface, and it means the layouts' `x`/`y` have to be
-declared on the base node because there is nowhere else to put them. Every
-`d3-hierarchy` traversal also follows a `this`-binding convention, as in
-`each<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this`,
-where this package has `forEachDescendant(node, cb)`. The free functions here
-constrain the node only by its structure, so they need none of that. Extend the
-node in your own file and the traversals return the extended type, with no
-module augmentation.
+`d3-hierarchy` preserves subtypes through polymorphic `this` on a node class.
+That requires a `new(data: Datum): this` constructor signature, declares the
+layouts' `x`/`y` on the base node, and gives every traversal a `this`-binding
+signature such as
+`each<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this`.
+The free functions here constrain the node only by its structure, so extending
+it needs no module augmentation.
 
 Most of the 928 lines in `@types/d3-hierarchy` declare the layouts and
 `stratify`, which this package does not have, so the line count is no

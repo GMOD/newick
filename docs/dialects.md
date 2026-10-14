@@ -7,11 +7,10 @@ them. The grammar puts the internal node's _label_ after a `)`, so `95` in
 A dendrogram's cluster height, the value at which the cluster merged, describes
 the node rather than the edge above it. Some writers put that height after the
 `)` as well, so in `(A,B)1.5;` from such a writer, `1.5` is a length.
-`@gmod/hclust` wrote that form through v4. It switched to `:` branch lengths in
-v5 because everywhere else a numeric internal label means a bootstrap value, and
-strings written by the older versions are still around. `parseNewick`'s
-`postParenNumeric` option chooses between the two readings, and its default
-reads both forms correctly, so you should not normally need to set it.
+`@gmod/hclust` wrote that form through v4, then switched to `:` branch lengths
+in v5, and strings written by the older versions are still around.
+`parseNewick`'s `postParenNumeric` option chooses between the two readings; the
+default reads both forms correctly.
 
 ```js
 parseNewick(text, { postParenNumeric: 'name' })

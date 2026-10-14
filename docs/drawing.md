@@ -56,8 +56,6 @@ root.y // 83.33333333333333
 
 `F` is at `83.33`, above the middle of the canvas, because an internal node's
 row is the mean of its immediate children's rows rather than its leaves' rows.
-In a lopsided tree, each ancestor therefore ends up closer to the side with more
-branches.
 
 To draw a phylogram instead of a cladogram, replace `n.depth * 40` with a
 cumulative branch-length sum, so a branch's drawn length is its evolutionary
