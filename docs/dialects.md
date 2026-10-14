@@ -23,7 +23,7 @@ parseNewick(text, { postParenNumeric: 'name' })
 | `'name'`   | `{ name: '1.5' }`   | plain Newick, and the numbers are bootstraps |
 | `'length'` | `{ length: 1.5 }`   | dendrogram output, e.g. `@gmod/hclust` v4    |
 
-## What `'auto'` decides on
+## `'auto'` reads a length only in a tree without `:` lengths
 
 `'auto'` reads a number after a `)` as a length only when the tree contains no
 `:` branch length _anywhere_. A writer that puts heights in the label produces
