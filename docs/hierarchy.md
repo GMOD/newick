@@ -1,18 +1,18 @@
 # Walking a tree
 
-`@gmod/newick` carries the `d3-hierarchy` traversals a tree viewer actually
-needs, as free functions rather than methods — `leaves(root)` instead of
-`root.leaves()`. `hierarchy` takes any nested data, so the walks below apply to
-any nested data passed to it.
+`@gmod/newick` provides the `d3-hierarchy` traversals a tree viewer needs, as
+free functions rather than methods: `leaves(root)` instead of `root.leaves()`.
+`hierarchy` takes any nested data, so the walks below apply to any nested data
+passed to it.
 
 Every traversal here is iterative, over an explicit stack. A phylogeny or a
 single-linkage dendrogram can be a caterpillar, as deep as it has leaves, and
 the recursive form throws `RangeError: Maximum call stack size exceeded` at
 around 5000 tips.
 
-`hierarchy(data, childrenAccessor)` wraps plain nested data in nodes that record
-depth, height, and parent. The accessor pulls the child array off your data, so
-`d => d.items` works as well as `d => d.children`. Every example below runs
+`hierarchy(data, childrenAccessor)` wraps plain nested data in nodes with depth,
+height, and parent fields. The accessor returns the child array from your data,
+so `d => d.items` works as well as `d => d.children`. Every example below runs
 against this tree, whose `depth` counts edges down from the root and whose
 `height` counts edges down to the deepest leaf beneath a node:
 
@@ -45,8 +45,8 @@ e.children[0].children // null — a leaf, not an empty array
 
 ## Traversals
 
-Each one takes a node as its first argument and walks the subtree under it, so
-passing a non-root node traverses only that branch.
+Each traversal takes a node as its first argument and walks the subtree under
+it, so on a non-root node it traverses only that branch.
 
 | call                          | returns                                                                          | order                                                 |
 | ----------------------------- | -------------------------------------------------------------------------------- | ----------------------------------------------------- |
@@ -88,16 +88,16 @@ intermediate array, for a render loop that would throw it away:
 forEachLink(root, (source, target) => drawBranch(source, target))
 ```
 
-Which traversal you want usually follows from the direction the information
-flows. Reading a parent's value down into its children — an inherited x
-position, a colour — needs `descendants` or `forEachDescendant`, since a parent
-is visited first. Deriving a parent's value from its children — a subtree count,
-the mean y in [docs/drawing.md](drawing.md) — needs `eachAfter`, since the
+The traversal to use usually depends on which direction values pass through the
+tree. To pass a parent's value down to its children, such as an inherited x
+position or a colour, use `descendants` or `forEachDescendant`, since they visit
+a parent first. To derive a parent's value from its children, such as a subtree
+count or the mean y in [docs/drawing.md](drawing.md), use `eachAfter`, since the
 children must already be done.
 
 `eachAfter` is not `descendants().reverse()`. Both put children before parents,
-but the reversal walks siblings right to left, which shows up the moment a
-callback depends on sibling order:
+but the reversal walks siblings right to left, so the two orders differ for any
+callback that depends on sibling order:
 
 ```js
 descendants(root)
@@ -116,7 +116,7 @@ leaves(root).map(n => n.data.name) // ['D', 'C', 'B', 'A'] — E's children flip
 
 ## Types
 
-There are three: `HierarchyNode<Datum>`, `HierarchyLink<Node>`, and
+The package has three types: `HierarchyNode<Datum>`, `HierarchyLink<Node>`, and
 `TreeLike<Node>`, the only structure a traversal requires from a node:
 
 ```ts
@@ -125,10 +125,11 @@ interface TreeLike<N> {
 }
 ```
 
-Every traversal is generic over the _node_ rather than over its data —
-`descendants<N extends TreeLike<N>>(node: N): N[]` — so a caller that extends
-`HierarchyNode` with its own layout fields gets that type back, and the
-traversals also walk a nested structure that is not a `HierarchyNode` at all:
+Every traversal is generic over the _node_ rather than over its data, as in
+`descendants<N extends TreeLike<N>>(node: N): N[]`. A caller that extends
+`HierarchyNode` with layout fields therefore gets the extended type back, and
+the traversals also walk a nested structure that is not a `HierarchyNode` at
+all:
 
 ```ts
 interface MyNode extends HierarchyNode<Datum> {
@@ -144,15 +145,16 @@ leaves(myRoot)[0].x // fine, no cast
 
 `d3-hierarchy` preserves subtypes too, but its traversals are methods on a node
 class, so it does the job with polymorphic `this` instead of a generic
-parameter. That mechanism costs its node interface a `new(data: Datum): this`
-constructor signature, and it means the layouts' `x`/`y` have to be declared on
-the base node because there is nowhere else to put them. It also carries a
-`this`-binding convention through every traversal —
-`each<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this`
-against our `forEachDescendant(node, cb)`. Free functions over a bare structural
-constraint need none of that: extend the node in your own file and the
-traversals follow, no module augmentation.
+parameter. That mechanism requires a `new(data: Datum): this` constructor
+signature on its node interface, and it means the layouts' `x`/`y` have to be
+declared on the base node because there is nowhere else to put them. Every
+`d3-hierarchy` traversal also follows a `this`-binding convention, as in
+`each<T = undefined>(func: (this: T, node: this, index: number, thisNode: this) => void, that?: T): this`,
+where this package has `forEachDescendant(node, cb)`. The free functions here
+constrain the node only by its structure, so they need none of that. Extend the
+node in your own file and the traversals return the extended type, with no
+module augmentation.
 
-Do not read `@types/d3-hierarchy`'s 928 lines as a like-for-like count against
-the three types here, though — most of them are the layouts and `stratify`,
-which this package does not have.
+Most of the 928 lines in `@types/d3-hierarchy` declare the layouts and
+`stratify`, which this package does not have, so the line count is no
+like-for-like comparison with the three types here.

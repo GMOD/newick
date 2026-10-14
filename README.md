@@ -58,19 +58,20 @@ parseNewick("('A,x','B (y)','it''s')Root;")
 // ] }
 ```
 
-Square brackets are a comment, and the parser drops what is inside them. That is
-where NHX and BEAST hang their per-node metadata, and the `:` characters inside
-an `[&&NHX:...]` block read as branch lengths otherwise:
+Square brackets are a comment, and the parser drops what is inside them. NHX and
+BEAST put their per-node metadata in brackets, and without the drop the parser
+would read the `:` characters inside an `[&&NHX:...]` block as branch lengths:
 
 ```js
 parseNewick('(A:0.1[&&NHX:S=human],B:0.2[&&NHX:S=mouse]);')
 // { children: [{ name: 'A', length: 0.1 }, { name: 'B', length: 0.2 }] }
 ```
 
-A bare number after a `)` sits in the grammar's label slot, so in a phylogeny it
-is a bootstrap support value. A tree with no `:` branch length _anywhere_ is not
-a phylogeny, though — it is a dendrogram, where that number is the height the
-cluster merged at — and `parseNewick` reads the two accordingly:
+A bare number after a `)` is where the grammar puts the internal node's label,
+so in a phylogeny it is a bootstrap support value. A tree with no `:` branch
+length _anywhere_ is a dendrogram, where that number is the height the cluster
+merged at. `parseNewick` reads the number as a name in the first case and as a
+`length` in the second:
 
 ```js
 parseNewick('((A:1,B:1)95,(C:1,D:1)80);') // 95 and 80 are names
@@ -78,13 +79,13 @@ parseNewick('(A,B)1.5;') // { length: 1.5, children: [{ name: 'A' }, { name: 'B'
 ```
 
 [docs/dialects.md](docs/dialects.md) covers which writers produce which form,
-and the `postParenNumeric` option that pins the reading rather than inferring
-it.
+and the `postParenNumeric` option, which sets the reading instead of letting the
+parser infer it.
 
-`hierarchy` wraps nested data — any nested data, not just Newick — in nodes that
-record their own position. `depth` counts edges down from the root and `height`
-counts edges down to the deepest leaf beneath the node, both filled in for every
-node up front:
+`hierarchy` wraps any nested data, Newick or otherwise, in nodes that hold their
+position in the tree. `depth` counts edges down from the root and `height`
+counts edges down to the deepest leaf beneath the node, and `hierarchy` fills in
+both for every node up front:
 
 ```js
 const root = hierarchy(
@@ -109,8 +110,8 @@ e.children[0].depth // 2
 e.children[0].children // null — a leaf, not an empty array
 ```
 
-The traversals are free functions taking a node first, so each walks the subtree
-under whatever you hand it — against that same tree:
+The traversals are free functions that take a node as the first argument, so
+each walks the subtree under the node you pass. On the same tree:
 
 ```js
 import { descendants, find, leaves, links, sum } from '@gmod/newick'
@@ -129,9 +130,9 @@ each one visits in. Every traversal is iterative, so a deep tree does not
 overflow the stack — a dendrogram can be nearly as deep as it has leaves.
 
 `@gmod/newick` has no layout algorithms (`cluster`, `tree`, `treemap`, `pack`,
-`partition`) or `stratify`. Use `d3-hierarchy` if you want those — though a
-dendrogram layout is a dozen lines against these traversals, which
-[docs/drawing.md](docs/drawing.md) works through.
+`partition`) or `stratify`. Use `d3-hierarchy` if you want those. A dendrogram
+layout takes a dozen lines on top of these traversals, and
+[docs/drawing.md](docs/drawing.md) works through one.
 
 ## Docs
 

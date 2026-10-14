@@ -54,13 +54,14 @@ root.children[2].y // 150
 root.y // 83.33333333333333
 ```
 
-Note `F` sits at `83.33` rather than halfway down the canvas: an internal node
-averages its immediate children, not its leaves, so a lopsided tree pulls its
-ancestors toward the side carrying more branches.
+`F` is at `83.33`, above the middle of the canvas, because an internal node's
+row is the mean of its immediate children's rows rather than its leaves' rows.
+In a lopsided tree, each ancestor therefore ends up closer to the side with more
+branches.
 
-Two variations are worth knowing. Swapping `n.depth * 40` for a cumulative
-branch-length sum turns the cladogram into a phylogram, where a branch's drawn
-length is the evolutionary distance it carries:
+To draw a phylogram instead of a cladogram, replace `n.depth * 40` with a
+cumulative branch-length sum, so a branch's drawn length is its evolutionary
+distance times `scale`:
 
 ```js
 eachAfter(root, n => {
@@ -71,7 +72,9 @@ forEachDescendant(root, n => {
 })
 ```
 
-That second walk has to be pre-order — `forEachDescendant`, not `eachAfter` —
-because each node reads its position from its parent, which must already be
-placed. Swapping the elbows for `ctx.lineTo(target.x, target.y)` alone gives
-straight diagonal branches instead of the rectangular dendrogram style.
+The phylogram's x pass has to run in pre-order, with `forEachDescendant` and not
+`eachAfter`, because the callback computes each node's x from its parent's, so
+the parent must already be placed.
+
+To draw straight diagonal branches instead of the rectangular dendrogram style,
+keep only the `ctx.lineTo(target.x, target.y)` call in the branch loop.
