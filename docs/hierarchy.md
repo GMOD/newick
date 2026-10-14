@@ -95,8 +95,8 @@ a parent first. To derive a parent's value from its children, such as a subtree
 count or the mean y in [docs/drawing.md](drawing.md), use `eachAfter`, since the
 children must already be done.
 
-`eachAfter` is not `descendants().reverse()`. Both put children before parents,
-but the reversal walks siblings right to left, so the two orders differ for any
+`eachAfter` and `descendants().reverse()` both put children before parents, but
+the reversal walks siblings right to left, so the two orders differ for any
 callback that depends on sibling order:
 
 ```js

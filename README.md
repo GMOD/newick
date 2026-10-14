@@ -111,7 +111,8 @@ e.children[0].children // null — a leaf, not an empty array
 ```
 
 The traversals are free functions that take a node as the first argument, so
-each walks the subtree under the node you pass. On the same tree:
+each walks the subtree under the node you pass, as in these calls on the same
+tree:
 
 ```js
 import { descendants, find, leaves, links, sum } from '@gmod/newick'
