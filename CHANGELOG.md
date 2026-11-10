@@ -1,3 +1,24 @@
+## [1.1.0](https://github.com/GMOD/newick/compare/v1.0.3...v1.1.0) (2026-11-10)
+
+### Documentation
+
+- Fix anti-AI writing tropes in README and docs ([7f7f965](https://github.com/GMOD/newick/commit/7f7f96506fb0fc287506fccb04a691cc2007b203))
+- Review fixes to the prose audit ([289e4b6](https://github.com/GMOD/newick/commit/289e4b6ab05929b9ff04e599f3aedea8376cd133))
+- Literal verbs for data (lands, says, tells, live on) ([fc8c774](https://github.com/GMOD/newick/commit/fc8c7743e57dbfdd55af1d97fa220c5473f71baa))
+- Plainer README wording ([b6939c9](https://github.com/GMOD/newick/commit/b6939c9d784c5126a8b0daa089dce3fb5d44ef0b))
+
+### Features
+
+- Add writeNewick, rerootTree and midpointRoot ([2f1bbca](https://github.com/GMOD/newick/commit/2f1bbca9a668998606cdd6feeaae69dc0a8fc0f9))
+
+### Other Changes
+
+- Rewrite AI-writing tropes in README and docs ([3f2ed41](https://github.com/GMOD/newick/commit/3f2ed4144acc1b1da5729db13d0fade6cbdfa7b9))
+- Fold short verdict sentences into their neighbours ([f9af993](https://github.com/GMOD/newick/commit/f9af993d424811275860bc8e768c2b1c9a348b8b))
+- Restore wording the tropes rewrite changed without a trope ([bbd8a7e](https://github.com/GMOD/newick/commit/bbd8a7e00b9416304ef531bb759e5eee61014bd9))
+- State the section's finding in vague headings ([2b48774](https://github.com/GMOD/newick/commit/2b48774dc4f7c6eb7a3035e33935ec5f4071918f))
+- Trim README and docs wordiness ([8d657c3](https://github.com/GMOD/newick/commit/8d657c323b425008d75ca75398cc71346be22df6))
+
 ## [1.0.3](https://github.com/GMOD/newick/compare/v1.0.2...v1.0.3) (2026-09-14)
 
 ### Bug Fixes
