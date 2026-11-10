@@ -104,6 +104,31 @@ sum(root, d => (d.children ? 0 : 1)).value // 4 — leaves under the root
 allocation-free `forEachDescendant` and `forEachLink`, and each one's visit
 order. Every traversal is iterative, so a deep tree does not overflow the stack.
 
+`writeNewick` writes a parsed tree back out, quoting any name that holds Newick
+punctuation, and `parseNewick` reads the result back to the same tree.
+`midpointRoot` roots a tree halfway along the longest path between two tips, the
+usual choice for the unrooted tree FastTree, IQ-TREE or neighbor joining writes.
+`rerootTree` roots it on the branch above a given node, at the middle of that
+branch or an `offset` up from the node:
+
+```js
+import {
+  midpointRoot,
+  parseNewick,
+  rerootTree,
+  writeNewick,
+} from '@gmod/newick'
+
+const tree = parseNewick('((A:1,B:1):1,(C:1,D:5):1);')
+writeNewick(midpointRoot(tree)) // '(D:4,(C:1,(A:1,B:1):2):1);'
+
+const a = tree.children[0].children[0]
+writeNewick(rerootTree(tree, a)) // '(A:0.5,(B:1,(C:1,D:5):2):0.5);'
+writeNewick(rerootTree(tree, a, 0.25)) // '(A:0.25,(B:1,(C:1,D:5):2):0.75);'
+```
+
+Neither function modifies the tree passed in.
+
 `@gmod/newick` has no layout algorithms or `stratify`; use `d3-hierarchy` for
 those. [docs/drawing.md](docs/drawing.md) builds a dendrogram layout in a dozen
 lines.

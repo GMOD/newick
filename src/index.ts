@@ -18,3 +18,6 @@ export {
   sum,
 } from './hierarchy.ts'
 export type { HierarchyLink, HierarchyNode, TreeLike } from './hierarchy.ts'
+
+export { midpointRoot, preorder, rerootTree } from './reroot.ts'
+export { writeNewick } from './write.ts'
